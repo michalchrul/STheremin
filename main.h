@@ -8,8 +8,11 @@
 #define LED_BLUE_ON   GPIOD->BSRRL = GPIO_Pin_15;
 #define LED_BLUE_OFF  GPIOD->BSRRH = GPIO_Pin_15;
 
-#define NOTEFREQUENCY 0.015		//frequency of saw wave: f0 = 0.5 * NOTEFREQUENCY * 48000 (=sample rate)
-#define NOTEAMPLITUDE 500.0		//amplitude of the saw wave
+//#define NOTEFREQUENCY 0.015		//frequency of saw wave: f0 = 0.5 * NOTEFREQUENCY * 48000 (=sample rate)
+//#define NOTEAMPLITUDE 500.0		//amplitude of the saw wave
+
+float NOTEFREQUENCY = 0.015;
+float NOTEAMPLITUDE = 500.0;
 
 
 typedef struct {

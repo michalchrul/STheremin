@@ -13,13 +13,21 @@
 #include "tm_stm32f4_gpio.h"
 #include "tm_stm32f4_gpio.c"
 #include <stm32f4xx.h>
-#include "audio.c"
+#include "audio.c" //rickrolld
 #include "codec.h"
 #include "main.h"
+#include "stm32f4xx_exti.h"
+
+#include "misc.h"
+
+TM_HCSR04_t Sensor_1;
+	TM_HCSR04_t Sensor_2;
 
 
 
 float Distance_1, Distance_2;
+
+
 
 //#define   OUT_FREQ          5000                                 // czestotliwosc fali
 //#define   SINE_RES          128                                  // rozdzielczosc
@@ -136,12 +144,53 @@ void initFilter(fir_8* theFilter)
 	theFilter->params[7] = 0.01;
 }
 
+
+
+
+
 int main(){
 
 	SystemInit();
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOB | RCC_AHB1Periph_GPIOC | RCC_AHB1Periph_GPIOD,  ENABLE);
 
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+		TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+		/* Time base configuration */
+		TIM_TimeBaseStructure.TIM_Period = 999;
+		TIM_TimeBaseStructure.TIM_Prescaler = 8399;
+		TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+		TIM_TimeBaseStructure.TIM_CounterMode =  TIM_CounterMode_Up;
+		TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+		TIM_Cmd(TIM3, ENABLE);
+
+
+		// ustawienie trybu pracy priorytetow przerwan
+		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+
+		NVIC_InitTypeDef NVIC_InitStructure;
+		// numer przerwania
+		NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
+		// priorytet gwny
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x00;
+		// subpriorytet
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
+		// uruchom dany kanal
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+		// zapisz wypelnion strukture do rejestrow
+		NVIC_Init(&NVIC_InitStructure);
+
+		// wyczyszczenie przerwania od timera 3 (wystpio przy konfiguracji timera)
+				TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
+				// zezwolenie na przerwania od przepenienia dla timera 3
+				TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
+
+
+
+
+		//(echo, trigger)
+		TM_HCSR04_Init(&Sensor_1, GPIOA, GPIO_Pin_1, GPIOA, GPIO_Pin_0);
+		TM_HCSR04_Init(&Sensor_2, GPIOA, GPIO_Pin_3, GPIOA, GPIO_Pin_2);
 
 //	RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
 //	  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
@@ -206,8 +255,6 @@ int main(){
 						//	SPI_I2S_GetFlagStatus(SPI3, SPI_I2S_FLAG_TXE);
 
 
-	SystemInit();
-
 		fir_8 filt;
 
 		//enables GPIO clock for PortD
@@ -256,43 +303,38 @@ int main(){
 			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 			GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-	TM_HCSR04_t Sensor_1;
-	TM_HCSR04_t Sensor_2;
-
-	//(echo, trigger)
-	TM_HCSR04_Init(&Sensor_1, GPIOA, GPIO_Pin_1, GPIOA, GPIO_Pin_0);
-	TM_HCSR04_Init(&Sensor_2, GPIOA, GPIO_Pin_3, GPIOA, GPIO_Pin_2);
 
 
 
 	// 12 green, 13 orange, 14 red, 15 blue
 
-	//Sensor_1
-	/* Initialize distance sensor1 on pins; ECHO: PD0, TRIGGER: PC1 */
-	if (!TM_HCSR04_Init(&Sensor_1, GPIOA, GPIO_PIN_1, GPIOA, GPIO_PIN_0)) {
-		/* Sensor is not ready to use */
-		/* Maybe wiring is incorrect */
-		while (1) {
-
-			Delayms(100);
-		}
-	}
-
-	//Sensor_2
-	/* Initialize distance sensor1 on pins; ECHO: PD0, TRIGGER: PC1 */
-	if (!TM_HCSR04_Init(&Sensor_2, GPIOA, GPIO_Pin_3, GPIOA, GPIO_Pin_2)) {
-		/* Sensor is not ready to use */
-		/* Maybe wiring is incorrect */
-		while (1) {
-
-			Delayms(100);
-		}
-	}
+//	//Sensor_1
+//	/* Initialize distance sensor1 on pins; ECHO: PD0, TRIGGER: PC1 */
+//	if (!TM_HCSR04_Init(&Sensor_1, GPIOA, GPIO_PIN_1, GPIOA, GPIO_PIN_0)) {
+//		/* Sensor is not ready to use */
+//		/* Maybe wiring is incorrect */
+//		while (1) {
+//
+//			Delayms(100);
+//		}
+//	}
+//
+//	//Sensor_2
+//	/* Initialize distance sensor1 on pins; ECHO: PD0, TRIGGER: PC1 */
+//	if (!TM_HCSR04_Init(&Sensor_2, GPIOA, GPIO_Pin_3, GPIOA, GPIO_Pin_2)) {
+//		/* Sensor is not ready to use */
+//		/* Maybe wiring is incorrect */
+//		while (1) {
+//
+//			Delayms(100);
+//		}
+//	}
 
 	GPIO_SetBits(GPIOD,GPIO_Pin_15);
 	GPIO_SetBits(GPIOD,GPIO_Pin_13);
 
-	while (1) {
+	while (1)
+	{
 
 
 
@@ -301,7 +343,7 @@ int main(){
 			    		SPI_I2S_SendData(CODEC_I2S, sample);
 
 			    		//only update on every second sample to insure that L & R ch. have the same sample value
-			    		if (sampleCounter & 0x00000001)
+			    		if (sampleCounter %1==0)
 			    		{
 			    			sawWave += NOTEFREQUENCY;
 			    			if (sawWave > 1.0)
@@ -325,68 +367,65 @@ int main(){
 			    		sampleCounter = 0;
 			    	}
 
-		Distance_1 = TM_HCSR04_Read(&Sensor_1);
-		Distance_2 = TM_HCSR04_Read(&Sensor_2);
-
-
-
-
-
-
-
-
-
-
-		/* Read distance from sensor 1 */
-		/* Distance is returned in cm and also stored in structure */
-		/* You can use both ways */
-		TM_HCSR04_Read(&Sensor_1);
-
-		/* Something is going wrong, maybe incorrect pinout */
-		if (Sensor_1.Distance < 0) {
-			GPIO_SetBits(GPIOD,GPIO_Pin_15);
-
-		} else if (Sensor_1.Distance > 50) {
-			/* Distance more than 50cm */
-
-			GPIO_SetBits(GPIOD,GPIO_Pin_15);
-		} else {
-			/* Distance between 0 and 50cm */
-			GPIO_ResetBits(GPIOD, GPIO_Pin_15);
-		}
-
-		/* Give some time to sensor */
-		Delayms(100);
-
-		/* Read distance from sensor 1 */
-		/* Distance is returned in cm and also stored in structure */
-		/* You can use both ways */
-		TM_HCSR04_Read(&Sensor_2);
-
-		/* Something is going wrong, maybe incorrect pinout */
-		if (Sensor_2.Distance < 0) {
-			GPIO_SetBits(GPIOD,GPIO_Pin_13);
-
-		} else if (Sensor_2.Distance > 50) {
-			/* Distance more than 50cm */
-
-			GPIO_SetBits(GPIOD,GPIO_Pin_13);
-		} else {
-			/* Distance between 0 and 50cm */
-			GPIO_ResetBits(GPIOD, GPIO_Pin_13);
-		}
-
-		/* Give some time to sensor */
-		Delayms(100);
-
-
-
-
-
-
-
-
 
 
 	}
+}
+
+void TIM3_IRQHandler(void)
+{
+             if(TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)
+             {
+                // miejsce na kod wywolywany w momencie wystapienia przerwania
+
+
+            	 		Distance_1 = TM_HCSR04_Read(&Sensor_1);
+            	 		Distance_2 = TM_HCSR04_Read(&Sensor_2);
+
+            	 		NOTEFREQUENCY = 0.01 * Distance_1;
+
+            	 /* Read distance from sensor 1 */
+            	 		/* Distance is returned in cm and also stored in structure */
+            	 		/* You can use both ways */
+            	 		TM_HCSR04_Read(&Sensor_1);
+
+            	 		/* Something is going wrong, maybe incorrect pinout */
+            	 		if (Sensor_1.Distance < 0) {
+            	 			GPIO_SetBits(GPIOD,GPIO_Pin_15);
+
+            	 		} else if (Sensor_1.Distance > 50) {
+            	 			/* Distance more than 50cm */
+
+            	 			GPIO_SetBits(GPIOD,GPIO_Pin_15);
+            	 		} else {
+            	 			/* Distance between 0 and 50cm */
+            	 			GPIO_ResetBits(GPIOD, GPIO_Pin_15);
+            	 		}
+
+            	 		/* Give some time to sensor */
+            	 		//Delayms(100);
+
+            	 		/* Read distance from sensor 1 */
+            	 		/* Distance is returned in cm and also stored in structure */
+            	 		/* You can use both ways */
+            	 		TM_HCSR04_Read(&Sensor_2);
+
+            	 		/* Something is going wrong, maybe incorrect pinout */
+            	 		if (Sensor_2.Distance < 0) {
+            	 			GPIO_SetBits(GPIOD,GPIO_Pin_13);
+
+            	 		} else if (Sensor_2.Distance > 50) {
+            	 			/* Distance more than 50cm */
+
+            	 			GPIO_SetBits(GPIOD,GPIO_Pin_13);
+            	 		} else {
+            	 			/* Distance between 0 and 50cm */
+            	 			GPIO_ResetBits(GPIOD, GPIO_Pin_13);
+            	 		}
+
+            	 		/* Give some time to sensor */
+            	 		//Delayms(100);
+                    // wyzerowanie flagi wyzwolonego przerwania
+                    TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
+             }
 }
