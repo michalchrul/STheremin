@@ -29,7 +29,7 @@ void TIM2_Config()
 
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 	TIM_TimeBaseStructure.TIM_Period = 8399;
-	TIM_TimeBaseStructure.TIM_Prescaler = 99;
+	TIM_TimeBaseStructure.TIM_Prescaler = 999;
 	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TIM_TimeBaseStructure.TIM_CounterMode =  TIM_CounterMode_Up;
 	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
@@ -221,17 +221,19 @@ void GPIOA_Init()
 				if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1))
 				{
 					TIM_Cmd(TIM3, ENABLE);
-				}
 
+				}
 				else if (!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1))
 				{
 					TIM_Cmd(TIM3, DISABLE);
 					TIM3_CNT = TIM3->CNT;
 					Distance_1 = (float)TIM3_CNT / 58;
 					EXTI_Pin_1_Disable();
+					EXTI_ClearITPendingBit(EXTI_Line1);
 				}
 				EXTI_ClearITPendingBit(EXTI_Line1);
 			}
+
 		}
 
 //EXTI for [GPIO A Pin_3] Echo signal
@@ -284,17 +286,16 @@ void GPIOA_Init()
 				{
 					TIM_Cmd(TIM4, ENABLE);
 				}
-
 				else if (!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_3))
 				{
 					TIM_Cmd(TIM4, DISABLE);
 					TIM4_CNT = TIM4->CNT;
 					Distance_2 = (float)TIM4_CNT /58;
 					EXTI_Pin_3_Disable();
+					EXTI_ClearITPendingBit(EXTI_Line3);
 				}
 				EXTI_ClearITPendingBit(EXTI_Line3);
 			}
-
 		}
 
 int main(void)
@@ -315,8 +316,17 @@ int main(void)
 	TIM5_Config(42);
 	TIM_5_Interruption_Config();
 
+
+
+
+
+
+
+
 	while (1)
 	{
+
+
 
 	}
 
