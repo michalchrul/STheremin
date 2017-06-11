@@ -268,13 +268,13 @@ void TIM5_IRQHandler(void)
 		//Send the sample here
 		if (SPI_I2S_GetFlagStatus(CODEC_I2S, SPI_I2S_FLAG_TXE))
 		{
-					//for 256 element table
+					//for a 256 element table
 					lData = sine_table[i];
 					hData = sine_table[i];
 					hData >>= 8;
 					lData = (uint16_t)(0.005 * lData);
 					hData = (uint16_t)(0.005 * hData);
-		    		SPI_I2S_SendData(CODEC_I2S, hData);
+					SPI_I2S_SendData(CODEC_I2S, hData);
 		    		SPI_I2S_SendData(CODEC_I2S, lData);
 
 		    		i++;
@@ -284,7 +284,7 @@ void TIM5_IRQHandler(void)
 		    		}
 
 		    		/*
-		    		//for 128 element table
+		    		//for a 128 element table
 		    		Sample = sine_table_2[i];
 					SPI_I2S_SendData(CODEC_I2S, Sample);
 					i++;
@@ -547,7 +547,7 @@ int main(void)
 	codec_ctrl_init();
 	I2S_Cmd(CODEC_I2S, ENABLE);
 
-	Codec_VolumeCtrl(0x0000);
+
 	//Codec_Mute(AUDIO_MUTE_ON);
 
 	while (1)
