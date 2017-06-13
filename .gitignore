@@ -55,6 +55,9 @@ Temporary Items
 *.obj
 *.elf
 
+#binary
+*.bin
+
 # Linker output
 *.ilk
 *.map
