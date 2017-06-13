@@ -192,6 +192,8 @@ void TIM2_IRQHandler(void)
 			PeriodValue = 3680;
 		}
 
+
+
 		TIM5_Config(PeriodValue);
 		TIM_5_Interrupt_Config();
 
