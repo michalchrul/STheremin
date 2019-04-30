@@ -14,8 +14,7 @@ It is a digital imitation of a theremin instrument using ultrasonic sensors to c
 After connecting the pins properly simply download the project and compile it with the CooCox CoIDE.
 
 # To do
-- Fix the CODEC_I2S function usage for the amplitude modulation to be possible
-
+- Fix the CODEC_I2S function usage for the amplitude modulation
 # Future Improvements
 
 - Waveform selection
