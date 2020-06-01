@@ -15,7 +15,7 @@ After connecting the pins properly simply download the project and compile it wi
 
 # To do
 - Fix the CODEC_I2S function usage for the amplitude modulation
-# Future Improvements
+# Possible future Improvements
 
 - Waveform selection
 - Simple delay effect
