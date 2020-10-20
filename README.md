@@ -24,4 +24,5 @@ After connecting the pins properly simply download the project and compile it wi
  This program contains code written by Andreas Finkelmeyer which was shared here:
  http://www.mind-dump.net/configuring-the-stm32f4-discovery-for-audio
  <br />
-You can contact me through michalchrul@gmail.com
+ 
+Contact: michalchrul@gmail.com
